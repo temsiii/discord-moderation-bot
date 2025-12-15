@@ -39,7 +39,7 @@ async def on_member_join(member):
     # Envoi du message de bienvenue
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
     if channel:
-        await channel.send(f"Bienvenue sur le serveur, {member.mention} ! 🎉 N'hésite pas à te présenter !")
+        await channel.send(f"Bienvenue sur le serveur, {member.mention} ! 🎉")
 
 @bot.event
 async def on_message_delete(message):
