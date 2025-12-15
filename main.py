@@ -16,6 +16,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 LOG_CHANNEL_ID = 1449678507247665183
 # ID du rôle à attribuer automatiquement
 AUTO_ROLE_ID = 1449675786704654417
+# ID du salon de bienvenue
+WELCOME_CHANNEL_ID = 1449930948031414283  # Ton ID de salon de bienvenue
 
 async def log(message):
     channel = bot.get_channel(LOG_CHANNEL_ID)
@@ -28,10 +30,16 @@ async def on_ready():
 
 @bot.event
 async def on_member_join(member):
+    # Ajout automatique du rôle
     role = member.guild.get_role(AUTO_ROLE_ID)
     if role:
         await member.add_roles(role)
         await log(f"✨ Rôle attribué à {member.mention} à son arrivée.")
+
+    # Envoi du message de bienvenue
+    channel = bot.get_channel(WELCOME_CHANNEL_ID)
+    if channel:
+        await channel.send(f"Bienvenue sur le serveur, {member.mention} ! 🎉 N'hésite pas à te présenter !")
 
 @bot.event
 async def on_message_delete(message):
