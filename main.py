@@ -19,10 +19,16 @@ AUTO_ROLE_ID = 1449675786704654417
 # ID du salon de bienvenue
 WELCOME_CHANNEL_ID = 1449930948031414283  # Ton ID de salon de bienvenue
 
-async def log(message):
+async def log_embed(title: str, description: str, fields: list = None, image_url: str = None):
+    embed = discord.Embed(title=title, description=description, color=discord.Color.red())
+    if fields:
+        for name, value, inline in fields:
+            embed.add_field(name=name, value=value, inline=inline)
+    if image_url:
+        embed.set_image(url=image_url)
     channel = bot.get_channel(LOG_CHANNEL_ID)
     if channel:
-        await channel.send(message)
+        await channel.send(embed=embed)
 
 @bot.event
 async def on_ready():
@@ -34,30 +40,55 @@ async def on_member_join(member):
     role = member.guild.get_role(AUTO_ROLE_ID)
     if role:
         await member.add_roles(role)
-        await log(f"✨ Rôle attribué à {member.mention} à son arrivée.")
+        await log_embed(
+            title="✨ Nouveau membre",
+            description=f"Rôle attribué à {member.mention} à son arrivée."
+        )
 
     # Envoi du message de bienvenue
     channel = bot.get_channel(WELCOME_CHANNEL_ID)
     if channel:
-        await channel.send(f"Bienvenue sur le serveur, {member.mention} ! 🎉")
+        await channel.send(f"Bienvenue sur le serveur, {member.mention} ! 🎉 N'hésite pas à te présenter !")
 
 @bot.event
 async def on_message_delete(message):
-    await log(f"❌ Message supprimé dans {message.channel.mention} par {message.author.mention} : {message.content}")
+    content = message.content or "[Pas de texte]"
+    description = f"Message supprimé dans {message.channel.mention} par {message.author.mention}"
+    fields = [("Contenu", content, False)]
+    image_url = None
+
+    if message.attachments:
+        # Si plusieurs pièces jointes, on affiche la première en image, les autres en champs
+        first_image_set = False
+        for attachment in message.attachments:
+            if not first_image_set and attachment.url.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp")):
+                image_url = attachment.url
+                first_image_set = True
+            fields.append(("Pièce jointe", f"[{attachment.filename}]({attachment.url})", False))
+
+    await log_embed(title="❌ Message supprimé", description=description, fields=fields, image_url=image_url)
 
 @bot.command(help="Expulse un membre du serveur.")
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *, reason=None):
     await member.kick(reason=reason)
     await ctx.send(f"{member} a été expulsé.")
-    await log(f"🚪 {member} a été expulsé par {ctx.author}. Raison : {reason}")
+    await log_embed(
+        title="🚪 Membre expulsé",
+        description=f"{member} a été expulsé par {ctx.author}.",
+        fields=[("Raison", reason or "Aucune raison fournie.", False)]
+    )
 
 @bot.command(help="Bannit un membre du serveur.")
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *, reason=None):
     await member.ban(reason=reason)
     await ctx.send(f"{member} a été banni.")
-    await log(f"⛔ {member} a été banni par {ctx.author}. Raison : {reason}")
+    await log_embed(
+        title="⛔ Membre banni",
+        description=f"{member} a été banni par {ctx.author}.",
+        fields=[("Raison", reason or "Aucune raison fournie.", False)]
+    )
 
 @bot.command(help="Supprime tous les messages du salon en cours.")
 @commands.has_permissions(manage_messages=True)
@@ -70,7 +101,11 @@ async def clearall(ctx):
         if len(deleted) < 100:
             break
     await ctx.send(f"🧹 Salon vidé, {deleted_count} messages supprimés.", delete_after=5)
-    await log(f"🧹 Salon {ctx.channel.mention} vidé par {ctx.author} ({deleted_count} messages supprimés)")
+    await log_embed(
+        title="🧹 Salon vidé",
+        description=f"Salon {ctx.channel.mention} vidé par {ctx.author}.",
+        fields=[("Messages supprimés", str(deleted_count), False)]
+    )
 
 @bot.command(name="commands", help="Affiche la liste des commandes disponibles.")
 async def commands_list(ctx):
