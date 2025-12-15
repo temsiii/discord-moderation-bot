@@ -37,21 +37,21 @@ async def on_member_join(member):
 async def on_message_delete(message):
     await log(f"❌ Message supprimé dans {message.channel.mention} par {message.author.mention} : {message.content}")
 
-@bot.command()
+@bot.command(help="Expulse un membre du serveur.")
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *, reason=None):
     await member.kick(reason=reason)
     await ctx.send(f"{member} a été expulsé.")
     await log(f"🚪 {member} a été expulsé par {ctx.author}. Raison : {reason}")
 
-@bot.command()
+@bot.command(help="Bannit un membre du serveur.")
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *, reason=None):
     await member.ban(reason=reason)
     await ctx.send(f"{member} a été banni.")
     await log(f"⛔ {member} a été banni par {ctx.author}. Raison : {reason}")
 
-@bot.command()
+@bot.command(help="Supprime tous les messages du salon en cours.")
 @commands.has_permissions(manage_messages=True)
 async def clearall(ctx):
     await ctx.send("🧹 Suppression de tous les messages en cours...")
@@ -63,5 +63,13 @@ async def clearall(ctx):
             break
     await ctx.send(f"🧹 Salon vidé, {deleted_count} messages supprimés.", delete_after=5)
     await log(f"🧹 Salon {ctx.channel.mention} vidé par {ctx.author} ({deleted_count} messages supprimés)")
+
+@bot.command(help="Affiche la liste des commandes disponibles.")
+async def help(ctx):
+    help_message = "Voici les commandes disponibles :\n"
+    for command in bot.commands:
+        desc = command.help or "Pas de description."
+        help_message += f"- **!{command.name}** : {desc}\n"
+    await ctx.send(help_message)
 
 bot.run(TOKEN)
