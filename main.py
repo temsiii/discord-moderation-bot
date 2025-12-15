@@ -64,8 +64,8 @@ async def clearall(ctx):
     await ctx.send(f"🧹 Salon vidé, {deleted_count} messages supprimés.", delete_after=5)
     await log(f"🧹 Salon {ctx.channel.mention} vidé par {ctx.author} ({deleted_count} messages supprimés)")
 
-@bot.command(help="Affiche la liste des commandes disponibles.")
-async def help(ctx):
+@bot.command(name="commands", help="Affiche la liste des commandes disponibles.")
+async def commands_list(ctx):
     help_message = "Voici les commandes disponibles :\n"
     for command in bot.commands:
         desc = command.help or "Pas de description."
